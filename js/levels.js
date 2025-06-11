@@ -34,13 +34,16 @@ class LevelManager {
             ],
             3: [
                 { x: 0, y: groundY, width: w * 0.1, height: 40, color: '#8B4513' },
-                { x: w * 0.85, y: groundY, width: w * 0.15, height: 40, color: '#8B4513' },
+                { x: w * 0.75, y: groundY, width: w * 0.15, height: 40, color: '#8B4513' },
+                
                 { x: w * 0.12, y: h - 120, width: w * 0.06, height: 20, color: '#228B22' },
                 { x: w * 0.22, y: h - 180, width: w * 0.06, height: 20, color: '#228B22' },
                 { x: w * 0.12, y: h - 240, width: w * 0.06, height: 20, color: '#228B22' },
                 { x: w * 0.22, y: h - 300, width: w * 0.06, height: 20, color: '#228B22' },
+                
                 { x: w * 0.35, y: h - 200, width: w * 0.05, height: 15, color: '#FF6347' },
                 { x: w * 0.45, y: h - 280, width: w * 0.05, height: 15, color: '#FF6347' },
+                
                 { x: w * 0.6, y: h - 220, width: w * 0.06, height: 20, color: '#228B22' }
             ],
             4: [
