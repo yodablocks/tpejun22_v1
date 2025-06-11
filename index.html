@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Mario - Polygon Ready</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #90EE90 70%, #90EE90 100%);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #gameCanvas {
+            display: block;
+            border: 2px solid #333;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #90EE90 70%, #90EE90 100%);
+        }
+        
+        #gameInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 0px #000;
+            z-index: 100;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-size: 12px;
+            text-shadow: 1px 1px 0px #000;
+        }
+        
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.8;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            from { transform: translateX(-100px); }
+            to { transform: translateX(calc(100vw + 100px)); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameInfo">
+        <div>Score: <span id="score">0</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+        <div>Level: <span id="level">1</span></div>
+    </div>
+    
+    <div id="controls">
+        WASD or Arrow Keys: Move & Jump | R: Restart Level
+    </div>
+    
+    <!-- Animated clouds -->
+    <div class="cloud" style="width: 60px; height: 40px; top: 15%; animation-delay: 0s;"></div>
+    <div class="cloud" style="width: 80px; height: 50px; top: 25%; animation-delay: -10s;"></div>
+    <div class="cloud" style="width: 70px; height: 45px; top: 10%; animation-delay: -15s;"></div>
+    
+    <canvas id="gameCanvas"></canvas>
+    
+    <script>
+        class SimpleMarioGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                
+                // Game state
+                this.score = 0;
+                this.lives = 3;
+                this.level = 1;
+                this.gameRunning = true;
+                this.levelMessage = null;
+                this.levelMessageTime = 0;
+                
+                // Player properties
+                this.player = {
+                    x: 100,
+                    y: this.canvas.height - 100,
+                    width: 32,
+                    height: 32,
+                    velX: 0,
+                    velY: 0,
+                    speed: 5,
+                    jumpPower: 15,
+                    onGround: false,
+                    color: '#FF6B6B'
+                };
+                
+                // Physics
+                this.gravity = 0.8;
+                this.friction = 0.8;
+                
+                // Input handling
+                this.keys = {};
+                this.setupInput();
+                
+                // Game objects
+                this.platforms = this.createLevel();
+                this.coins = this.createCoins();
+                this.enemies = this.createEnemies();
+                this.goal = { x: this.canvas.width - 100, y: this.canvas.height - 80, width: 40, height: 40 };
+                
+                // Start game loop
+                this.gameLoop();
+            }
+            
+            setupInput() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                    if (e.key.toLowerCase() === 'r') {
+                        this.restartLevel();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+            }
+            
+            createLevel() {
+                const levels = {
+                    1: {
+                        platforms: [
+                            { x: 0, y: this.canvas.height - 40, width: 200, height: 40, color: '#8B4513' },
+                            { x: 300, y: this.canvas.height - 40, width: 200, height: 40, color: '#8B4513' },
+                            { x: 600, y: this.canvas.height - 40, width: 200, height: 40, color: '#8B4513' },
+                            { x: 900, y: this.canvas.height - 40, width: this.canvas.width - 900, height: 40, color: '#8B4513' },
+                            { x: 250, y: this.canvas.height - 150, width: 100, height: 20, color: '#228B22' },
+                            { x: 450, y: this.canvas.height - 200, width: 100, height: 20, color: '#228B22' },
+                            { x: 650, y: this.canvas.height - 180, width: 120, height: 20, color: '#228B22' }
+                        ]
+                    },
+                    2: {
+                        platforms: [
+                            { x: 0, y: this.canvas.height - 40, width: 150, height: 40, color: '#8B4513' },
+                            { x: 250, y: this.canvas.height - 40, width: 100, height: 40, color: '#8B4513' },
+                            { x: 450, y: this.canvas.height - 40, width: 150, height: 40, color: '#8B4513' },
+                            { x: 700, y: this.canvas.height - 40, width: 100, height: 40, color: '#8B4513' },
+                            { x: 900, y: this.canvas.height - 40, width: this.canvas.width - 900, height: 40, color: '#8B4513' },
+                            { x: 180, y: this.canvas.height - 160, width: 80, height: 20, color: '#228B22' },
+                            { x: 370, y: this.canvas.height - 220, width: 80, height: 20, color: '#228B22' },
+                            { x: 620, y: this.canvas.height - 180, width: 80, height: 20, color: '#228B22' },
+                            { x: 820, y: this.canvas.height - 280, width: 80, height: 20, color: '#228B22' }
+                        ]
+                    },
+                    3: {
+                        platforms: [
+                            { x: 0, y: this.canvas.height - 40, width: 120, height: 40, color: '#8B4513' },
+                            { x: this.canvas.width - 200, y: this.canvas.height - 40, width: 200, height: 40, color: '#8B4513' },
+                            { x: 150, y: this.canvas.height - 120, width: 80, height: 20, color: '#228B22' },
+                            { x: 280, y: this.canvas.height - 180, width: 80, height: 20, color: '#228B22' },
+                            { x: 150, y: this.canvas.height - 240, width: 80, height: 20, color: '#228B22' },
+                            { x: 280, y: this.canvas.height - 300, width: 80, height: 20, color: '#228B22' },
+                            { x: 450, y: this.canvas.height - 200, width: 60, height: 15, color: '#FF6347' },
+                            { x: 580, y: this.canvas.height - 280, width: 60, height: 15, color: '#FF6347' },
+                            { x: 720, y: this.canvas.height - 220, width: 80, height: 20, color: '#228B22' }
+                        ]
+                    },
+                    4: {
+                        platforms: [
+                            { x: 0, y: this.canvas.height - 40, width: 100, height: 40, color: '#8B4513' },
+                            { x: 200, y: this.canvas.height - 80, width: 80, height: 40, color: '#8B4513' },
+                            { x: 380, y: this.canvas.height - 120, width: 100, height: 40, color: '#8B4513' },
+                            { x: 580, y: this.canvas.height - 80, width: 80, height: 40, color: '#8B4513' },
+                            { x: 760, y: this.canvas.height - 40, width: this.canvas.width - 760, height: 40, color: '#8B4513' },
+                            { x: 120, y: this.canvas.height - 200, width: 60, height: 15, color: '#FF6347' },
+                            { x: 300, y: this.canvas.height - 250, width: 60, height: 15, color: '#FF6347' },
+                            { x: 500, y: this.canvas.height - 200, width: 60, height: 15, color: '#FF6347' },
+                            { x: 650, y: this.canvas.height - 280, width: 80, height: 20, color: '#228B22' },
+                            { x: 200, y: this.canvas.height - 350, width: 200, height: 20, color: '#4169E1' },
+                            { x: 500, y: this.canvas.height - 320, width: 150, height: 20, color: '#4169E1' }
+                        ]
+                    },
+                    5: {
+                        platforms: [
+                            { x: 0, y: this.canvas.height - 40, width: 80, height: 40, color: '#8B4513' },
+                            { x: this.canvas.width - 150, y: this.canvas.height - 40, width: 150, height: 40, color: '#8B4513' },
+                            { x: 120, y: this.canvas.height - 140, width: 50, height: 15, color: '#FF6347' },
+                            { x: 220, y: this.canvas.height - 200, width: 40, height: 15, color: '#FF6347' },
+                            { x: 320, y: this.canvas.height - 260, width: 50, height: 15, color: '#FF6347' },
+                            { x: 420, y: this.canvas.height - 200, width: 40, height: 15, color: '#FF6347' },
+                            { x: 520, y: this.canvas.height - 280, width: 60, height: 15, color: '#FF6347' },
+                            { x: 620, y: this.canvas.height - 220, width: 50, height: 15, color: '#FF6347' },
+                            { x: 720, y: this.canvas.height - 160, width: 80, height: 20, color: '#228B22' },
+                            { x: 300, y: this.canvas.height - 380, width: 300, height: 20, color: '#9400D3' },
+                            { x: 450, y: this.canvas.height - 320, width: 100, height: 15, color: '#FF6347' }
+                        ]
+                    }
+                };
+                
+                return levels[this.level] ? levels[this.level].platforms : levels[1].platforms;
+            }
+            
+            createCoins() {
+                const levelCoins = {
+                    1: [
+                        { x: 320, y: this.canvas.height - 200, width: 20, height: 20, collected: false },
+                        { x: 480, y: this.canvas.height - 250, width: 20, height: 20, collected: false },
+                        { x: 700, y: this.canvas.height - 230, width: 20, height: 20, collected: false }
+                    ],
+                    2: [
+                        { x: 220, y: this.canvas.height - 210, width: 20, height: 20, collected: false },
+                        { x: 410, y: this.canvas.height - 270, width: 20, height: 20, collected: false },
+                        { x: 660, y: this.canvas.height - 230, width: 20, height: 20, collected: false },
+                        { x: 860, y: this.canvas.height - 330, width: 20, height: 20, collected: false }
+                    ],
+                    3: [
+                        { x: 190, y: this.canvas.height - 170, width: 20, height: 20, collected: false },
+                        { x: 320, y: this.canvas.height - 230, width: 20, height: 20, collected: false },
+                        { x: 190, y: this.canvas.height - 290, width: 20, height: 20, collected: false },
+                        { x: 490, y: this.canvas.height - 250, width: 20, height: 20, collected: false },
+                        { x: 760, y: this.canvas.height - 270, width: 20, height: 20, collected: false }
+                    ],
+                    4: [
+                        { x: 160, y: this.canvas.height - 250, width: 20, height: 20, collected: false },
+                        { x: 340, y: this.canvas.height - 300, width: 20, height: 20, collected: false },
+                        { x: 540, y: this.canvas.height - 250, width: 20, height: 20, collected: false },
+                        { x: 240, y: this.canvas.height - 400, width: 20, height: 20, collected: false },
+                        { x: 570, y: this.canvas.height - 370, width: 20, height: 20, collected: false }
+                    ],
+                    5: [
+                        { x: 145, y: this.canvas.height - 190, width: 20, height: 20, collected: false },
+                        { x: 240, y: this.canvas.height - 250, width: 20, height: 20, collected: false },
+                        { x: 340, y: this.canvas.height - 310, width: 20, height: 20, collected: false },
+                        { x: 540, y: this.canvas.height - 330, width: 20, height: 20, collected: false },
+                        { x: 450, y: this.canvas.height - 430, width: 20, height: 20, collected: false },
+                        { x: 500, y: this.canvas.height - 370, width: 20, height: 20, collected: false }
+                    ]
+                };
+                
+                return levelCoins[this.level] || levelCoins[1];
+            }
+            
+            createEnemies() {
+                const levelEnemies = {
+                    1: [
+                        { x: 350, y: this.canvas.height - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
+                    ],
+                    2: [
+                        { x: 350, y: this.canvas.height - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
+                        { x: 550, y: this.canvas.height - 80, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true }
+                    ],
+                    3: [
+                        { x: 200, y: this.canvas.height - 160, width: 24, height: 24, velX: -0.5, color: '#8B0000', alive: true },
+                        { x: 320, y: this.canvas.height - 220, width: 24, height: 24, velX: 0.5, color: '#8B0000', alive: true },
+                        { x: 800, y: this.canvas.height - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
+                    ],
+                    4: [
+                        { x: 250, y: this.canvas.height - 120, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
+                        { x: 450, y: this.canvas.height - 160, width: 24, height: 24, velX: 1.5, color: '#8B0000', alive: true },
+                        { x: 620, y: this.canvas.height - 120, width: 24, height: 24, velX: -1.2, color: '#8B0000', alive: true },
+                        { x: 300, y: this.canvas.height - 390, width: 24, height: 24, velX: 0.8, color: '#FF4500', alive: true }
+                    ],
+                    5: [
+                        { x: 200, y: this.canvas.height - 240, width: 24, height: 24, velX: -2, color: '#FF4500', alive: true },
+                        { x: 400, y: this.canvas.height - 240, width: 24, height: 24, velX: 1.5, color: '#FF4500', alive: true },
+                        { x: 600, y: this.canvas.height - 270, width: 24, height: 24, velX: -1.8, color: '#FF4500', alive: true },
+                        { x: 500, y: this.canvas.height - 420, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true },
+                        { x: 450, y: this.canvas.height - 360, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
+                    ]
+                };
+                
+                return levelEnemies[this.level] || levelEnemies[1];
+            }
+            
+            handleInput() {
+                if (this.keys['a'] || this.keys['arrowleft']) {
+                    this.player.velX = -this.player.speed;
+                } else if (this.keys['d'] || this.keys['arrowright']) {
+                    this.player.velX = this.player.speed;
+                } else {
+                    this.player.velX *= this.friction;
+                }
+                
+                if ((this.keys['w'] || this.keys['arrowup'] || this.keys[' ']) && this.player.onGround) {
+                    this.player.velY = -this.player.jumpPower;
+                    this.player.onGround = false;
+                }
+            }
+            
+            updatePlayer() {
+                this.player.velY += this.gravity;
+                this.player.x += this.player.velX;
+                this.player.y += this.player.velY;
+                this.player.onGround = false;
+                
+                this.platforms.forEach(platform => {
+                    if (this.checkCollision(this.player, platform)) {
+                        if (this.player.velY > 0 && this.player.y < platform.y) {
+                            this.player.y = platform.y - this.player.height;
+                            this.player.velY = 0;
+                            this.player.onGround = true;
+                        }
+                    }
+                });
+                
+                if (this.player.x < 0) this.player.x = 0;
+                if (this.player.x + this.player.width > this.canvas.width) {
+                    this.player.x = this.canvas.width - this.player.width;
+                }
+                
+                if (this.player.y > this.canvas.height) {
+                    this.loseLife();
+                }
+            }
+            
+            updateEnemies() {
+                this.enemies.forEach(enemy => {
+                    if (!enemy.alive) return;
+                    
+                    enemy.x += enemy.velX;
+                    
+                    if (enemy.x <= 0 || enemy.x + enemy.width >= this.canvas.width) {
+                        enemy.velX *= -1;
+                    }
+                    
+                    let onPlatform = false;
+                    this.platforms.forEach(platform => {
+                        if (enemy.x + enemy.width > platform.x && 
+                            enemy.x < platform.x + platform.width &&
+                            enemy.y + enemy.height >= platform.y &&
+                            enemy.y + enemy.height <= platform.y + platform.height + 10) {
+                            onPlatform = true;
+                        }
+                    });
+                    
+                    if (!onPlatform) {
+                        enemy.velX *= -1;
+                    }
+                });
+            }
+            
+            checkCollisions() {
+                this.coins.forEach(coin => {
+                    if (!coin.collected && this.checkCollision(this.player, coin)) {
+                        coin.collected = true;
+                        this.score += 100;
+                        this.updateUI();
+                    }
+                });
+                
+                this.enemies.forEach(enemy => {
+                    if (!enemy.alive) return;
+                    
+                    if (this.checkCollision(this.player, enemy)) {
+                        if (this.player.velY > 0 && this.player.y < enemy.y) {
+                            enemy.alive = false;
+                            this.score += 200;
+                            this.player.velY = -8;
+                        } else {
+                            this.loseLife();
+                        }
+                    }
+                });
+                
+                if (this.checkCollision(this.player, this.goal)) {
+                    this.levelComplete();
+                }
+            }
+            
+            checkCollision(rect1, rect2) {
+                return rect1.x < rect2.x + rect2.width &&
+                       rect1.x + rect1.width > rect2.x &&
+                       rect1.y < rect2.y + rect2.height &&
+                       rect1.y + rect1.height > rect2.y;
+            }
+            
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.platforms.forEach(platform => {
+                    this.ctx.fillStyle = platform.color;
+                    this.ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                    this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    this.ctx.fillRect(platform.x, platform.y, platform.width, 4);
+                });
+                
+                this.coins.forEach(coin => {
+                    if (!coin.collected) {
+                        this.ctx.fillStyle = '#FFD700';
+                        this.ctx.beginPath();
+                        this.ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.fillStyle = '#FFFF00';
+                        this.ctx.beginPath();
+                        this.ctx.arc(coin.x + coin.width/2 - 3, coin.y + coin.height/2 - 3, 3, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+                
+                this.enemies.forEach(enemy => {
+                    if (enemy.alive) {
+                        this.ctx.fillStyle = enemy.color;
+                        this.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                        this.ctx.fillStyle = 'white';
+                        this.ctx.fillRect(enemy.x + 4, enemy.y + 4, 4, 4);
+                        this.ctx.fillRect(enemy.x + 16, enemy.y + 4, 4, 4);
+                        this.ctx.fillStyle = 'black';
+                        this.ctx.fillRect(enemy.x + 5, enemy.y + 5, 2, 2);
+                        this.ctx.fillRect(enemy.x + 17, enemy.y + 5, 2, 2);
+                        
+                        if (enemy.color === '#FF4500') {
+                            this.ctx.fillStyle = '#FFD700';
+                            this.ctx.fillRect(enemy.x + 8, enemy.y - 4, 3, 4);
+                            this.ctx.fillRect(enemy.x + 13, enemy.y - 4, 3, 4);
+                        }
+                    }
+                });
+                
+                this.ctx.fillStyle = this.player.color;
+                this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(this.player.x + 8, this.player.y + 4, 16, 8);
+                this.ctx.fillStyle = '#FFE4C4';
+                this.ctx.fillRect(this.player.x + 8, this.player.y + 12, 16, 8);
+                this.ctx.fillStyle = '#0000FF';
+                this.ctx.fillRect(this.player.x + 4, this.player.y + 20, 24, 12);
+                
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.fillRect(this.goal.x, this.goal.y, this.goal.width, this.goal.height);
+                this.ctx.fillStyle = this.level >= 5 ? '#9400D3' : '#FF0000';
+                this.ctx.fillRect(this.goal.x, this.goal.y, 30, 20);
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '10px Arial';
+                this.ctx.fillText(this.level >= 5 ? 'FINAL' : 'GOAL', this.goal.x + 2, this.goal.y + 12);
+                
+                if (this.levelMessage && this.levelMessageTime > 0) {
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillStyle = '#FFD700';
+                    this.ctx.font = '48px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(this.levelMessage, this.canvas.width/2, this.canvas.height/2);
+                    
+                    const levelDescriptions = {
+                        'LEVEL 1': 'Tutorial - Learn the basics!',
+                        'LEVEL 2': 'Jumping Challenge - Mind the gaps!',
+                        'LEVEL 3': 'Vertical Challenge - Climb high!',
+                        'LEVEL 4': 'Advanced Platforming - Precision required!',
+                        'LEVEL 5': 'Master Level - Ultimate test!'
+                    };
+                    
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = '24px Arial';
+                    this.ctx.fillText(levelDescriptions[this.levelMessage] || '', this.canvas.width/2, this.canvas.height/2 + 50);
+                    this.levelMessageTime--;
+                    this.ctx.textAlign = 'left';
+                }
+            }
+            
+            loseLife() {
+                this.lives--;
+                this.updateUI();
+                if (this.lives <= 0) {
+                    this.gameOver();
+                } else {
+                    this.respawnPlayer();
+                }
+            }
+            
+            respawnPlayer() {
+                this.player.x = 100;
+                this.player.y = this.canvas.height - 100;
+                this.player.velX = 0;
+                this.player.velY = 0;
+            }
+            
+            levelComplete() {
+                this.score += 1000 + (this.level * 500);
+                
+                if (this.level >= 5) {
+                    this.gameWon();
+                    return;
+                }
+                
+                this.level++;
+                this.updateUI();
+                this.player.x = 100;
+                this.player.y = this.canvas.height - 100;
+                this.player.velX = 0;
+                this.player.velY = 0;
+                this.platforms = this.createLevel();
+                this.coins = this.createCoins();
+                this.enemies = this.createEnemies();
+                this.showLevelMessage('LEVEL ' + this.level);
+            }
+            
+            gameWon() {
+                this.gameRunning = false;
+                this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.font = '48px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('🎉 YOU WIN! 🎉', this.canvas.width/2, this.canvas.height/2 - 60);
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '28px Arial';
+                this.ctx.fillText('All Levels Completed!', this.canvas.width/2, this.canvas.height/2);
+                this.ctx.font = '24px Arial';
+                this.ctx.fillText('Final Score: ' + this.score, this.canvas.width/2, this.canvas.height/2 + 40);
+                this.ctx.fillText('Press R to Play Again', this.canvas.width/2, this.canvas.height/2 + 80);
+                this.drawFireworks();
+            }
+            
+            showLevelMessage(message) {
+                this.levelMessage = message;
+                this.levelMessageTime = 120;
+            }
+            
+            drawFireworks() {
+                const time = Date.now() * 0.01;
+                for (let i = 0; i < 5; i++) {
+                    const x = this.canvas.width * (0.2 + i * 0.15);
+                    const y = this.canvas.height * 0.3;
+                    this.ctx.fillStyle = `hsl(${(time + i * 60) % 360}, 100%, 50%)`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x + Math.sin(time + i) * 30, y + Math.cos(time + i) * 20, 5, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            gameOver() {
+                this.gameRunning = false;
+                this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '48px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('GAME OVER', this.canvas.width/2, this.canvas.height/2);
+                this.ctx.font = '24px Arial';
+                this.ctx.fillText('Final Score: ' + this.score, this.canvas.width/2, this.canvas.height/2 + 60);
+                this.ctx.fillText('Press R to Restart', this.canvas.width/2, this.canvas.height/2 + 100);
+            }
+            
+            restartLevel() {
+                this.score = 0;
+                this.lives = 3;
+                this.level = 1;
+                this.gameRunning = true;
+                this.levelMessage = null;
+                this.levelMessageTime = 0;
+                this.respawnPlayer();
+                this.platforms = this.createLevel();
+                this.enemies = this.createEnemies();
+                this.coins = this.createCoins();
+                this.updateUI();
+            }
+            
+            updateUI() {
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('level').textContent = this.level;
+            }
+            
+            gameLoop() {
+                if (this.gameRunning) {
+                    this.handleInput();
+                    this.updatePlayer();
+                    this.updateEnemies();
+                    this.checkCollisions();
+                }
+                this.render();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+        
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            new SimpleMarioGame();
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('gameCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Placeholder for blockchain/multiplayer integration
+        class BlockchainIntegration {
+            constructor() {
+                this.web3 = null;
+                this.contract = null;
+            }
+            
+            async connectWallet() {
+                console.log('Connecting to Polygon wallet...');
+            }
+            
+            async saveHighScore(score) {
+                console.log('Saving high score to Polygon:', score);
+            }
+            
+            async getLeaderboard() {
+                console.log('Fetching leaderboard from Polygon...');
+                return [];
+            }
+        }
+        
+        // Placeholder for Vircadia multiplayer integration
+        class VircadiaMultiplayer {
+            constructor() {
+                this.connected = false;
+                this.players = new Map();
+            }
+            
+            async connect() {
+                console.log('Connecting to Vircadia multiplayer...');
+            }
+            
+            sendPlayerPosition(x, y) {
+                if (this.connected) {
+                    console.log('Sending position to Vircadia:', { x, y });
+                }
+            }
+            
+            onPlayerUpdate(callback) {
+                console.log('Setting up Vircadia player update handler');
+            }
+        }
+    </script>
+</body>
+</html>
