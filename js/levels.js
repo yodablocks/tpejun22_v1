@@ -35,6 +35,7 @@ class LevelManager {
             3: [
                 { x: 0, y: groundY, width: w * 0.1, height: 40, color: '#8B4513' },
                 { x: w * 0.75, y: groundY, width: w * 0.15, height: 40, color: '#8B4513' },
+                { x: w * 0.55, y: groundY, width: w * 0.08, height: 40, color: '#8B4513' }, // add 
                 
                 { x: w * 0.12, y: h - 120, width: w * 0.06, height: 20, color: '#228B22' },
                 { x: w * 0.22, y: h - 180, width: w * 0.06, height: 20, color: '#228B22' },
