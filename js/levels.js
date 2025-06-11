@@ -123,11 +123,11 @@ class LevelManager {
         
         const levelEnemies = {
             1: [
-                { x: w * 0.28, y: h - 60, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
+                { x: w * 0.28, y: h - 64, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
             ],
             2: [
-                { x: w * 0.28, y: h - 60, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
-                { x: w * 0.43, y: h - 60, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true }
+                { x: w * 0.28, y: h - 64, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
+                { x: w * 0.43, y: h - 64, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true }
             ],
             3: [
                 { x: w * 0.16, y: h - 160, width: 24, height: 24, velX: -0.5, color: '#8B0000', alive: true },
