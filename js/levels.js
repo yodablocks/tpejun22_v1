@@ -7,10 +7,13 @@ class LevelManager {
         
         const levels = {
             1: [
+                // GROUND PLATFORMS (Brown platforms at bottom - #8B4513 = brown)
                 { x: 0, y: groundY, width: w * 0.15, height: 40, color: '#8B4513' },
                 { x: w * 0.25, y: groundY, width: w * 0.15, height: 40, color: '#8B4513' },
                 { x: w * 0.5, y: groundY, width: w * 0.15, height: 40, color: '#8B4513' },
                 { x: w * 0.75, y: groundY, width: w * 0.25, height: 40, color: '#8B4513' },
+
+                // FLOATING PLATFORMS (Green platforms in air - #228B22 = green)
                 { x: w * 0.2, y: h - 150, width: w * 0.08, height: 20, color: '#228B22' },
                 { x: w * 0.37, y: h - 200, width: w * 0.08, height: 20, color: '#228B22' },
                 { x: w * 0.54, y: h - 180, width: w * 0.1, height: 20, color: '#228B22' }
