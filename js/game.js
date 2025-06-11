@@ -21,6 +21,8 @@ class SimpleMarioGame {
         // Input handling
         this.keys = {};
         this.setupInput();
+        this.showMenu = true; //
+        this.initializeMenu(); //
         
         // Initialize game components
         this.player = new Player(this.canvas.width, this.canvas.height);
@@ -347,9 +349,18 @@ class SimpleMarioGame {
         document.getElementById('lives').textContent = this.lives;
         document.getElementById('level').textContent = this.level;
     }
-    
+    /* 
     gameLoop() {
         if (this.gameRunning) {
+            this.handleInput();
+            this.update();
+        }
+        this.render();
+        requestAnimationFrame(() => this.gameLoop());
+    }
+    */
+    gameLoop() {
+        if (!this.showMenu && this.gameRunning) {
             this.handleInput();
             this.update();
         }
@@ -365,4 +376,43 @@ class SimpleMarioGame {
         this.player.canvasHeight = this.canvas.height;
         this.initializeLevel();
     }
-}
+
+// ADD ALL THESE METHODS HERE (after resize method):
+    initializeMenu() {
+        const startBtn = document.getElementById('startGameBtn');
+        const connectBtn = document.getElementById('connectWalletBtn');
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const helpBtn = document.getElementById('helpBtn');
+    
+        startBtn.addEventListener('click', () => this.startGame());
+        connectBtn.addEventListener('click', () => this.connectWalletFromMenu());
+        leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
+        helpBtn.addEventListener('click', () => this.showHelp());
+    }
+
+    startGame() {
+        document.getElementById('gameMenu').classList.add('hidden');
+        this.showMenu = false;
+        this.gameRunning = true;
+    }
+
+    async connectWalletFromMenu() {
+        const result = await this.blockchain.connectWallet();
+        if (result.success) {
+            document.getElementById('walletAddress').textContent = 
+            result.account.substring(0, 6) + '...' + result.account.substring(38);
+            document.getElementById('walletStatus').classList.remove('hidden');
+            document.getElementById('connectWalletBtn').textContent = '✅ Wallet Connected';
+        } else {
+            alert('Failed to connect wallet: ' + result.error);
+        }
+    }
+
+    showLeaderboard() {
+        alert('🏆 Leaderboard\n\nFeature coming soon!\nConnect your wallet to save high scores on Polygon blockchain.');
+    }
+
+    showHelp() {
+        alert('🎮 CONTROLS:\n\nWASD/Arrow Keys - Move & Jump\nR - Restart\nC - Connect Wallet\nM - Multiplayer\n\n🎯 GOAL:\nComplete all 5 levels!\nCollect coins and defeat enemies!');
+    }
+} // End of class
