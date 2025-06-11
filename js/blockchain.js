@@ -101,3 +101,45 @@ class BlockchainIntegration {
             // Mock leaderboard data
             const mockLeaderboard = [
                 { player: '0x1234...5678', score: 15000, level: 5 },
+                { player: '0x9876...3210', score: 12500, level: 4 },
+                { player: '0x5555...7777', score: 10000, level: 3 },
+                { player: '0x8888...9999', score: 7500, level: 3 },
+                { player: '0x1111...2222', score: 5000, level: 2 }
+            ];
+            
+            return { success: true, leaderboard: mockLeaderboard };
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    async mintNFT(score, level) {
+        if (!this.connected) {
+            return { success: false, error: 'Wallet not connected' };
+        }
+        
+        try {
+            console.log('Minting NFT for completion:', { score, level });
+            
+            // Placeholder for NFT minting logic
+            // const tx = await this.contract.methods.mintCompletionNFT(score, level).send({
+            //     from: this.userAccount,
+            //     gas: 300000
+            // });
+            
+            return { success: true, message: 'NFT minted successfully!' };
+        } catch (error) {
+            console.error('Error minting NFT:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    getWalletAddress() {
+        return this.userAccount;
+    }
+    
+    isConnected() {
+        return this.connected;
+    }
+}
