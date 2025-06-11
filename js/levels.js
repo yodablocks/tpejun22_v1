@@ -19,11 +19,14 @@ class LevelManager {
                 { x: w * 0.54, y: h - 180, width: w * 0.1, height: 20, color: '#228B22' }
             ],
             2: [
+                // GROUND PLATFORMS (Brown platforms at bottom - #8B4513 = brown)
                 { x: 0, y: groundY, width: w * 0.12, height: 40, color: '#8B4513' },
                 { x: w * 0.2, y: groundY, width: w * 0.08, height: 40, color: '#8B4513' },
                 { x: w * 0.35, y: groundY, width: w * 0.12, height: 40, color: '#8B4513' },
                 { x: w * 0.55, y: groundY, width: w * 0.08, height: 40, color: '#8B4513' },
                 { x: w * 0.7, y: groundY, width: w * 0.3, height: 40, color: '#8B4513' },
+
+                // FLOATING PLATFORMS (Green platforms in air - #228B22 = green)
                 { x: w * 0.14, y: h - 160, width: w * 0.06, height: 20, color: '#228B22' },
                 { x: w * 0.29, y: h - 220, width: w * 0.06, height: 20, color: '#228B22' },
                 { x: w * 0.48, y: h - 180, width: w * 0.06, height: 20, color: '#228B22' },
@@ -123,8 +126,8 @@ class LevelManager {
                 { x: w * 0.28, y: h - 60, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
             ],
             2: [
-                { x: w * 0.28, y: h - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
-                { x: w * 0.43, y: h - 80, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true }
+                { x: w * 0.28, y: h - 60, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
+                { x: w * 0.43, y: h - 60, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true }
             ],
             3: [
                 { x: w * 0.16, y: h - 160, width: 24, height: 24, velX: -0.5, color: '#8B0000', alive: true },
