@@ -16,6 +16,23 @@
     <div id="controls">
         WASD or Arrow Keys: Move & Jump | R: Restart Level
     </div>
+
+    <!-- Game Menu Overlay -->
+    <div id="gameMenu" class="menu-overlay">
+        <div class="menu-container">
+            <h1 class="game-title">🎮 Simple Mario</h1>
+            <div class="menu-buttons">
+                <button id="startGameBtn" class="menu-btn primary">Start Game</button>
+                <button id="connectWalletBtn" class="menu-btn secondary">🔗 Connect Polygon Wallet</button>
+                <button id="leaderboardBtn" class="menu-btn secondary">🏆 Leaderboard</button>
+                <button id="helpBtn" class="menu-btn secondary">❓ Help</button>
+            </div>
+            <div id="walletStatus" class="wallet-status hidden">
+                <span id="walletAddress"></span>
+                <span class="wallet-connected">✅ Connected</span>
+            </div>
+        </div>
+    </div>
     
     <!-- Animated clouds -->
     <div class="cloud" style="width: 60px; height: 40px; top: 15%; animation-delay: 0s;"></div>
