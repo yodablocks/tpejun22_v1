@@ -44,7 +44,7 @@ body {
     to { transform: translateX(calc(100vw + 100px)); }
 }
 
-.lava-pit {
+/* .lava-pit {
     position: absolute;
     height: 40px;
     bottom: 0px;
@@ -65,3 +65,4 @@ body {
     0%, 100% { transform: scaleY(1); }
     50% { transform: scaleY(1.1); }
 }
+*/
