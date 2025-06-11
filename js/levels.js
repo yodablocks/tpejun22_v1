@@ -134,9 +134,14 @@ class LevelManager {
                 { x: w * 0.43, y: h - 64, width: 24, height: 24, velX: 1, color: '#8B0000', alive: true }
             ],
             3: [
-                { x: w * 0.16, y: h - 160, width: 24, height: 24, velX: -0.5, color: '#8B0000', alive: true },
-                { x: w * 0.25, y: h - 220, width: 24, height: 24, velX: 0.5, color: '#8B0000', alive: true },
-                { x: w * 0.87, y: h - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
+              // Enemy on first stair platform
+                { x: w * 0.15, y: h - 144, width: 24, height: 24, velX: -0.5, color: '#8B0000', alive: true }, // h-120-24 = h-144
+    
+                // Enemy on bridge platform  
+                { x: w * 0.43, y: h - 224, width: 24, height: 24, velX: 0.8, color: '#8B0000', alive: true }, // h-200-24 = h-224
+    
+                // Enemy on ground (final area)
+                { x: w * 0.8, y: h - 64, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true } // groundY-24 = h-40-24 = h-64
             ],
             4: [
                 { x: w * 0.18, y: h - 120, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
