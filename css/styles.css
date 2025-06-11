@@ -43,3 +43,23 @@ body {
     from { transform: translateX(-100px); }
     to { transform: translateX(calc(100vw + 100px)); }
 }
+
+.lava-pit {
+    position: absolute;
+    height: 60px;
+    background: linear-gradient(45deg, 
+        #FF4500 0%, 
+        #FF6347 25%, 
+        #FF0000 50%, 
+        #DC143C 75%, 
+        #FF4500 100%);
+    border-radius: 10px 10px 0 0;
+    z-index: 1;
+    animation: lava-bubble 3s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
+}
+
+@keyframes lava-bubble {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.1); }
+}
