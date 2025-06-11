@@ -120,7 +120,7 @@ class LevelManager {
         
         const levelEnemies = {
             1: [
-                { x: w * 0.28, y: h - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
+                { x: w * 0.28, y: h - 90, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true }
             ],
             2: [
                 { x: w * 0.28, y: h - 80, width: 24, height: 24, velX: -1, color: '#8B0000', alive: true },
